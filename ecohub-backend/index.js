@@ -6,7 +6,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
-
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -16,9 +16,8 @@ app.use(cors());
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,       // Use the new URL parser
-  useUnifiedTopology: true,  // Use the new Server Discovery and Monitoring engine
-  //useCreateIndex: true,       // This option is no longer supported, but it might not cause an error
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
 const connection = mongoose.connection;
@@ -29,7 +28,13 @@ connection.once('open', () => {
 // Use Authentication Routes
 app.use('/auth', authRoutes);
 
-// Other routes and middleware can be added here...
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Catch-all route for serving the frontend application
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 // Start the server
 app.listen(PORT, () => {
